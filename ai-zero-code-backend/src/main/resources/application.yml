@@ -3,7 +3,7 @@ spring:
     name: ai-zero-code
 
 server:
-  port: 8080
+  port: 8123
   servlet:
       context-path: /api
 
