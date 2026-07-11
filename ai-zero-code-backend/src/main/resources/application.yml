@@ -1,6 +1,11 @@
 spring:
   application:
     name: ai-zero-code
+  datasource:
+    url: jdbc:mysql://localhost:3306/ai_zero_code?characterEncoding=utf-8&serverTimezone=Asia/Shanghai
+    username: admin
+    password: "123"
+    driver-class-name: com.mysql.cj.jdbc.Driver
 
 server:
   port: 8123
@@ -16,3 +21,7 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+
+logging:
+  level:
+    com.qiujie.aizerocode.mapper: DEBUG
