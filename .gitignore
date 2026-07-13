@@ -33,8 +33,11 @@ build/
 .vscode/
 
 
+
+### CUSTOM ###
 .playwright-mcp/
-
 tmp/
-
 docker-compose.yml
+.claude/
+application-local.yml
+test/
