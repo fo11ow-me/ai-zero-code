@@ -7,7 +7,7 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
-import com.qiujie.aizerocode.model.dto.UserQueryRequest;
+import com.qiujie.aizerocode.model.dto.user.UserQueryRequest;
 import com.qiujie.aizerocode.model.entity.User;
 import com.qiujie.aizerocode.mapper.UserMapper;
 import com.qiujie.aizerocode.model.enums.UserRoleEnum;

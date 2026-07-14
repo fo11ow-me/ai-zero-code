@@ -2,7 +2,7 @@ package com.qiujie.aizerocode.service;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
-import com.qiujie.aizerocode.model.dto.UserQueryRequest;
+import com.qiujie.aizerocode.model.dto.user.UserQueryRequest;
 import com.qiujie.aizerocode.model.entity.User;
 import com.qiujie.aizerocode.model.vo.LoginUserVO;
 import com.qiujie.aizerocode.model.vo.UserVO;
@@ -14,7 +14,6 @@ import java.util.List;
  * 用户 服务层。
  *
  * @author qiujie
- * @since 2026-07-10
  */
 public interface UserService extends IService<User> {
 

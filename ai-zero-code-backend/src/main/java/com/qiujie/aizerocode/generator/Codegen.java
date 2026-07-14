@@ -16,7 +16,7 @@ import java.util.Map;
  */
 public class Codegen {
 
-    private static final String[] TABLE_NAMES = {"user"};
+    private static final String[] TABLE_NAMES = {"app"};
 
     public static void main(String[] args) {
         Dict dict = YamlUtil.loadByPath("application.yml");
@@ -60,6 +60,8 @@ public class Codegen {
         globalConfig.enableEntity()
                 .setWithLombok(true)
                 .setJdkVersion(21);
+
+        globalConfig.getJavadocConfig().setSince("");
 
         //设置生成 mapper
         globalConfig.enableMapper();

@@ -1,4 +1,4 @@
-package com.qiujie.aizerocode.model.dto;
+package com.qiujie.aizerocode.model.dto.user;
 
 import lombok.Data;
 
