@@ -7,6 +7,9 @@ import java.io.Serializable;
 @Data
 public class UserUpdateRequest implements Serializable {
 
+
+    private static final long serialVersionUID = 1L;
+
     /**
      * id
      */
@@ -32,5 +35,4 @@ public class UserUpdateRequest implements Serializable {
      */
     private String userRole;
 
-    private static final long serialVersionUID = 1L;
 }
