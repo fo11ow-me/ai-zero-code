@@ -4,7 +4,9 @@ import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
 import com.qiujie.aizerocode.model.dto.app.AppQueryRequest;
 import com.qiujie.aizerocode.model.entity.App;
+import com.qiujie.aizerocode.model.entity.User;
 import com.qiujie.aizerocode.model.vo.AppVO;
+import reactor.core.publisher.Flux;
 
 import java.util.List;
 
@@ -40,5 +42,16 @@ public interface AppService extends IService<App> {
      * @return
      */
     List<AppVO> getAppVOList(List<App> appList);
+
+
+    /**
+     * 通过对话生成代码
+     *
+     * @param appId
+     * @param userMessage
+     * @param lginUser
+     * @return
+     */
+    Flux<String> chatToCodegen(Long appId, String userMessage, User lginUser);
 
 }

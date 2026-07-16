@@ -2,6 +2,7 @@ package com.qiujie.aizerocode.controller;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.json.JSONUtil;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.qiujie.aizerocode.annotation.AuthCheck;
@@ -22,17 +23,18 @@ import com.qiujie.aizerocode.model.enums.CodeGenTypeEnum;
 import com.qiujie.aizerocode.model.vo.AppVO;
 import com.qiujie.aizerocode.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.http.MediaType;
+import org.springframework.http.codec.ServerSentEvent;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.qiujie.aizerocode.model.entity.App;
 import com.qiujie.aizerocode.service.AppService;
-import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 应用 控制层。
@@ -48,6 +50,25 @@ public class AppController {
 
     @Autowired
     private UserService userService;
+
+
+    @GetMapping(value = "/chat/code/gen", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public Flux<ServerSentEvent<String>> chatToCodegen(@RequestParam Long appId, @RequestParam String userMessage, HttpServletRequest request) {
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId 错误");
+        ThrowUtils.throwIf(StrUtil.isBlank(userMessage), ErrorCode.PARAMS_ERROR, "用户提示词不能为空");
+        User loginUser = userService.getLoginUser(request);
+        Flux<String> flux = appService.chatToCodegen(appId, userMessage, loginUser);
+        // 封装成SSE流式返回
+        return flux.map(chunk -> {
+            Map<String, String> map = Map.of("v", chunk);
+            String jsonStr = JSONUtil.toJsonStr(map);
+            return ServerSentEvent.<String>builder().data(jsonStr).build();
+        }).concatWith(Mono.just(
+                // 发送结束事件
+                ServerSentEvent.<String>builder()
+                        .event("done").data("").build()
+        ));
+    }
 
     /**
      * 创建应用（用户只能为自己创建应用）

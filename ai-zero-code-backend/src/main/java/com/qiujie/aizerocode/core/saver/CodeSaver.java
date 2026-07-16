@@ -21,14 +21,15 @@ public abstract class CodeSaver<T> {
     /**
      * 保存代码
      *
-     * @param result
+     * @param result 生成的代码
+     * @param appId  应用 id
      * @return
      */
-    public final File save(T result) {
+    public final File save(T result, Long appId) {
         // 1. 验证输入
         validateInput(result);
         // 2. 构建存放目录
-        String dirPath = createFileDir();
+        String dirPath = createFileDir(appId);
         // 3. 保存代码到文件中
         saveToFile(dirPath, result);
         // 4. 返回存放目录
@@ -46,16 +47,21 @@ public abstract class CodeSaver<T> {
         }
     }
 
+
     /**
-     * 创建文件保存的目录：FILE_ROOT_PATH + File.separator + type_雪花id
+     * 创建代码文件存放目录
      *
+     * @param appId 应用 id
      * @return
      */
-    private String createFileDir() {
+    private String createFileDir(Long appId) {
+        if (appId == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "appId不能为空");
+        }
         String type = getCodeGenType().getValue();
-        String dirPath = FILE_ROOT_PATH + File.separator + type + File.separator + IdUtil.getSnowflakeNextIdStr();
+        String dirPath = FILE_ROOT_PATH + File.separator + type + File.separator + appId;
         FileUtil.mkdir(dirPath);
-        log.info("文件存放目录为：{}", dirPath);
+        log.info("代码文件存放目录为：{}", dirPath);
         return dirPath;
     }
 

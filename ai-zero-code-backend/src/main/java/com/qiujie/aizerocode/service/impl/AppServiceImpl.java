@@ -2,20 +2,25 @@ package com.qiujie.aizerocode.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.qiujie.aizerocode.core.AiCodegenFacade;
 import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
+import com.qiujie.aizerocode.exception.ThrowUtils;
 import com.qiujie.aizerocode.model.dto.app.AppQueryRequest;
 import com.qiujie.aizerocode.model.entity.App;
 import com.qiujie.aizerocode.mapper.AppMapper;
 import com.qiujie.aizerocode.model.entity.User;
+import com.qiujie.aizerocode.model.enums.CodeGenTypeEnum;
 import com.qiujie.aizerocode.model.vo.AppVO;
 import com.qiujie.aizerocode.model.vo.UserVO;
 import com.qiujie.aizerocode.service.AppService;
 import com.qiujie.aizerocode.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,10 +34,13 @@ import java.util.stream.Collectors;
  * @author qiujie
  */
 @Service
-public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppService{
+public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppService {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private AiCodegenFacade aiCodegenFacade;
 
     @Override
     public AppVO getAppVO(App app) {
@@ -98,6 +106,32 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>  implements AppS
         }).collect(Collectors.toList());
     }
 
+
+    /**
+     * 聊天并生成代码
+     *
+     * @param appId
+     * @param userMessage
+     * @param lginUser
+     * @return
+     */
+    @Override
+    public Flux<String> chatToCodegen(Long appId, String userMessage, User lginUser) {
+        // 1. 校验参数
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId 错误");
+        ThrowUtils.throwIf(StrUtil.isBlank(userMessage), ErrorCode.PARAMS_ERROR, "用户提示词不能为空");
+        // 2. 获取应用信息
+        App app = this.getById(appId);
+        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR, "应用不存在");
+        // 3. 权限校验，仅允许本人参与自己创建的用于构建应用的对话
+        ThrowUtils.throwIf(!lginUser.getId().equals(app.getUserId()), ErrorCode.NO_AUTH_ERROR, "无权限");
+        // 4. 获取应用的代码生成模式
+        String codeGenType = app.getCodeGenType();
+        CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getEnumByValue(codeGenType);
+        ThrowUtils.throwIf(codeGenTypeEnum == null, ErrorCode.PARAMS_ERROR, "代码生成模式错误");
+        // 5. 调用门面类方法，进行代码生成并保存到文件中
+        return aiCodegenFacade.generateAndSaveCodeStream(userMessage, codeGenTypeEnum, appId);
+    }
 
 
 }
