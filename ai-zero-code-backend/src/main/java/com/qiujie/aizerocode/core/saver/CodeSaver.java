@@ -10,12 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 
+import static com.qiujie.aizerocode.constant.AppConstant.CODE_SAVE_PATH;
+
 @Slf4j
 public abstract class CodeSaver<T> {
 
 
-    // 文件保存的根目录
-    private static final String FILE_ROOT_PATH = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "code";
 
 
     /**
@@ -59,7 +59,7 @@ public abstract class CodeSaver<T> {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "appId不能为空");
         }
         String type = getCodeGenType().getValue();
-        String dirPath = FILE_ROOT_PATH + File.separator + type + File.separator + appId;
+        String dirPath = CODE_SAVE_PATH + File.separator + type + File.separator + appId;
         FileUtil.mkdir(dirPath);
         log.info("代码文件存放目录为：{}", dirPath);
         return dirPath;

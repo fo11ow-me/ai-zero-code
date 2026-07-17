@@ -2,6 +2,10 @@ package com.qiujie.aizerocode.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.core.io.IORuntimeException;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
@@ -9,6 +13,7 @@ import com.qiujie.aizerocode.core.AiCodegenFacade;
 import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
 import com.qiujie.aizerocode.exception.ThrowUtils;
+import com.qiujie.aizerocode.model.dto.app.AppDeployRequest;
 import com.qiujie.aizerocode.model.dto.app.AppQueryRequest;
 import com.qiujie.aizerocode.model.entity.App;
 import com.qiujie.aizerocode.mapper.AppMapper;
@@ -22,11 +27,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
+import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import static com.qiujie.aizerocode.constant.AppConstant.*;
 
 /**
  * 应用 服务层实现。
@@ -131,6 +140,47 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         ThrowUtils.throwIf(codeGenTypeEnum == null, ErrorCode.PARAMS_ERROR, "代码生成模式错误");
         // 5. 调用门面类方法，进行代码生成并保存到文件中
         return aiCodegenFacade.generateAndSaveCodeStream(userMessage, codeGenTypeEnum, appId);
+    }
+
+
+    /**
+     * 部署应用，将生成的代码文件复制到部署目录并更新数据库
+     *
+     * @param appDeployRequest 部署请求（包含 appId）
+     * @param loginUser        当前登录用户
+     * @return
+     */
+    @Override
+    public String deployApp(AppDeployRequest appDeployRequest, User loginUser) {
+        // 1. 校验参数
+        Long appId = appDeployRequest.getAppId();
+        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId 错误");
+        // 2. 获取应用信息
+        App app = this.getById(appId);
+        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR, "应用不存在");
+        // 3. 权限校验，仅允许本人部署自己的应用
+        ThrowUtils.throwIf(!loginUser.getId().equals(app.getUserId()), ErrorCode.NO_AUTH_ERROR, "无权限");
+        // 4. 校验源代码目录是否存在
+        String sourcePath = CODE_SAVE_PATH + File.separator + app.getCodeGenType() + File.separator + appId;
+        File sourceDir = new File(sourcePath);
+        ThrowUtils.throwIf(!sourceDir.exists() || !sourceDir.isDirectory(), ErrorCode.SYSTEM_ERROR, "源代码尚未生成，请先生成代码");
+        // 5. 生成部署标识并复制文件到部署目录
+        String deployKey = app.getDeployKey();
+        deployKey = deployKey.isBlank() ? RandomUtil.randomString(10) : deployKey;
+        String targetPath = APP_DEPLOY_PATH + File.separator + deployKey;
+        try {
+            FileUtil.copyContent(sourceDir, new File(targetPath), true);
+        } catch (IORuntimeException e) {
+            throw new BusinessException(ErrorCode.OPERATION_ERROR, "部署失败：" + e.getMessage());
+        }
+        // 6. 更新应用部署信息
+        App updateApp = new App();
+        updateApp.setId(appId);
+        updateApp.setDeployKey(deployKey);
+        updateApp.setDeployedTime(LocalDateTime.now());
+        boolean result = this.updateById(updateApp);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "部署失败");
+        return String.format("%s/%S", APP_DEPLOY_HOST, deployKey);
     }
 
 

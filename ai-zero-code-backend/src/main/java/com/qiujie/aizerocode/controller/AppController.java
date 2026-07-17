@@ -16,6 +16,7 @@ import com.qiujie.aizerocode.exception.ErrorCode;
 import com.qiujie.aizerocode.exception.ThrowUtils;
 import com.qiujie.aizerocode.model.dto.app.AppAddRequest;
 import com.qiujie.aizerocode.model.dto.app.AppAdminUpdateRequest;
+import com.qiujie.aizerocode.model.dto.app.AppDeployRequest;
 import com.qiujie.aizerocode.model.dto.app.AppQueryRequest;
 import com.qiujie.aizerocode.model.dto.app.AppUpdateRequest;
 import com.qiujie.aizerocode.model.entity.User;
@@ -69,6 +70,21 @@ public class AppController {
                         .event("done").data("").build()
         ));
     }
+
+    /**
+     * 部署应用，将生成的代码文件发布到部署目录
+     *
+     * @param appDeployRequest 部署请求
+     * @param request          请求
+     */
+    @PostMapping("/deploy")
+    public BaseResponse<String> deployApp(@RequestBody AppDeployRequest appDeployRequest, HttpServletRequest request) {
+        ThrowUtils.throwIf(appDeployRequest == null, ErrorCode.PARAMS_ERROR);
+        User loginUser = userService.getLoginUser(request);
+        String deployKey = appService.deployApp(appDeployRequest, loginUser);
+        return ResultUtils.success(deployKey);
+    }
+
 
     /**
      * 创建应用（用户只能为自己创建应用）

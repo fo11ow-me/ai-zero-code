@@ -2,6 +2,7 @@ package com.qiujie.aizerocode.service;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import com.qiujie.aizerocode.model.dto.app.AppDeployRequest;
 import com.qiujie.aizerocode.model.dto.app.AppQueryRequest;
 import com.qiujie.aizerocode.model.entity.App;
 import com.qiujie.aizerocode.model.entity.User;
@@ -53,5 +54,15 @@ public interface AppService extends IService<App> {
      * @return
      */
     Flux<String> chatToCodegen(Long appId, String userMessage, User lginUser);
+
+
+    /**
+     * 部署应用，将生成的代码文件复制到部署目录并更新数据库
+     *
+     * @param appDeployRequest 部署请求（包含 appId）
+     * @param loginUser        当前登录用户
+     *
+     */
+    String deployApp(AppDeployRequest appDeployRequest, User loginUser);
 
 }
