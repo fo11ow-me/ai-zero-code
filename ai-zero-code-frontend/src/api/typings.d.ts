@@ -10,6 +10,10 @@ declare namespace API {
     priority?: number
   }
 
+  type AppDeployRequest = {
+    appId?: number
+  }
+
   type AppQueryRequest = {
     pageNum?: number
     pageSize?: number
@@ -81,6 +85,12 @@ declare namespace API {
     message?: string
   }
 
+  type BaseResponseString = {
+    code?: number
+    data?: string
+    message?: string
+  }
+
   type BaseResponseUser = {
     code?: number
     data?: User
@@ -91,6 +101,11 @@ declare namespace API {
     code?: number
     data?: UserVO
     message?: string
+  }
+
+  type chatToCodegenParams = {
+    appId: number
+    userMessage: string
   }
 
   type DeleteRequest = {
@@ -140,6 +155,12 @@ declare namespace API {
     totalPage?: number
     totalRow?: number
     optimizeCountQuery?: boolean
+  }
+
+  type ServerSentEventString = true
+
+  type serveStaticResourceParams = {
+    appId: number
   }
 
   type User = {
