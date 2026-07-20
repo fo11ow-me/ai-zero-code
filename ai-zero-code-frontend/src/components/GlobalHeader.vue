@@ -51,7 +51,7 @@
 import type { MenuProps } from 'ant-design-vue'
 import { message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser'
-import { LogoutOutlined } from '@ant-design/icons-vue'
+import { HomeOutlined, LogoutOutlined } from '@ant-design/icons-vue'
 import { logout } from '@/api/userController'
 
 const loginUserStore = useLoginUserStore()
@@ -68,6 +68,7 @@ router.afterEach((to, from, next) => {
 const originItems = ref([
   {
     key: '/',
+    icon: () => h(HomeOutlined),
     label: '首页',
     title: '首页',
   },
@@ -75,7 +76,17 @@ const originItems = ref([
     key: '/admin/userManage',
     label: '用户管理',
     title: '用户管理',
-  }
+  },
+  {
+    key: '/admin/appManage',
+    label: '应用管理',
+    title: '应用管理',
+  },
+  {
+    key: '/admin/chatManage',
+    label: '对话管理',
+    title: '对话管理',
+  },
 ])
 
 // 处理菜单点击
