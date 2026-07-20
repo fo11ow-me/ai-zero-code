@@ -4,7 +4,6 @@ import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.io.IORuntimeException;
-import cn.hutool.core.util.IdUtil;
 import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.mybatisflex.core.query.QueryWrapper;
@@ -18,16 +17,21 @@ import com.qiujie.aizerocode.model.dto.app.AppQueryRequest;
 import com.qiujie.aizerocode.model.entity.App;
 import com.qiujie.aizerocode.mapper.AppMapper;
 import com.qiujie.aizerocode.model.entity.User;
+import com.qiujie.aizerocode.model.enums.ChatHistoryMessageTypeEnum;
 import com.qiujie.aizerocode.model.enums.CodeGenTypeEnum;
 import com.qiujie.aizerocode.model.vo.AppVO;
 import com.qiujie.aizerocode.model.vo.UserVO;
 import com.qiujie.aizerocode.service.AppService;
+import com.qiujie.aizerocode.service.ChatHistoryService;
 import com.qiujie.aizerocode.service.UserService;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +47,7 @@ import static com.qiujie.aizerocode.constant.AppConstant.*;
  * @author qiujie
  */
 @Service
+@Slf4j
 public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppService {
 
     @Autowired
@@ -50,6 +55,9 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
 
     @Autowired
     private AiCodegenFacade aiCodegenFacade;
+
+    @Autowired
+    private ChatHistoryService chatHistoryService;
 
     @Override
     public AppVO getAppVO(App app) {
@@ -138,8 +146,20 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         String codeGenType = app.getCodeGenType();
         CodeGenTypeEnum codeGenTypeEnum = CodeGenTypeEnum.getEnumByValue(codeGenType);
         ThrowUtils.throwIf(codeGenTypeEnum == null, ErrorCode.PARAMS_ERROR, "代码生成模式错误");
-        // 5. 调用门面类方法，进行代码生成并保存到文件中
-        return aiCodegenFacade.generateAndSaveCodeStream(userMessage, codeGenTypeEnum, appId);
+        // 5. 将用户消息保存到数据库中
+        chatHistoryService.addChatMessage(appId, lginUser.getId(), userMessage, ChatHistoryMessageTypeEnum.USER.getValue());
+        // 6. 调用ai生成代码流
+        Flux<String> flux = aiCodegenFacade.generateAndSaveCodeStream(userMessage, codeGenTypeEnum, appId);
+        // 7. 返回流，并将ai消息存放到数据库
+        StringBuilder sb = new StringBuilder();
+        return flux.doOnNext(sb::append).doOnComplete(() -> {
+                    // 8. 保存ai消息
+                    chatHistoryService.addChatMessage(appId, lginUser.getId(), sb.toString(), ChatHistoryMessageTypeEnum.AI.getValue());
+                })
+                .doOnError(error -> {
+                    chatHistoryService.addChatMessage(appId, lginUser.getId(), "AI回复失败：" + error.getMessage(), ChatHistoryMessageTypeEnum.AI.getValue());
+                })
+                ;
     }
 
 
@@ -166,7 +186,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         ThrowUtils.throwIf(!sourceDir.exists() || !sourceDir.isDirectory(), ErrorCode.SYSTEM_ERROR, "源代码尚未生成，请先生成代码");
         // 5. 生成部署标识并复制文件到部署目录
         String deployKey = app.getDeployKey();
-        deployKey = deployKey.isBlank() ? RandomUtil.randomString(10) : deployKey;
+        deployKey = StrUtil.isBlank(deployKey) ? RandomUtil.randomString(10) : deployKey;
         String targetPath = APP_DEPLOY_PATH + File.separator + deployKey;
         try {
             FileUtil.copyContent(sourceDir, new File(targetPath), true);
@@ -184,4 +204,24 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
     }
 
 
+    /**
+     * 删除应用，删除数据库记录
+     *
+     * @param id
+     * @return
+     */
+    @Override
+    public boolean removeById(@NonNull Serializable id) {
+        Long appId = Long.valueOf(id.toString());
+        if (appId <= 0) {
+            return false;
+        }
+        try {
+            chatHistoryService.deleteByAppId(appId);
+        } catch (Exception e) {
+            log.error("删除对话记录失败：{}", e.getMessage());
+        }
+        // 删除应用
+        return super.removeById(appId);
+    }
 }
