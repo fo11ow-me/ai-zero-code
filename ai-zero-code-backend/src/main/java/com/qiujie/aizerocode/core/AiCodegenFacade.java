@@ -84,7 +84,7 @@ public class AiCodegenFacade {
 
 
     /**
-     * 处理代码流
+     * 拼接流中的每个字符块，得到完整内容，解析其中的代码，然后分别保存到文件中
      *
      * @param codeGenType
      * @param flux
@@ -93,13 +93,13 @@ public class AiCodegenFacade {
      */
     private Flux<String> processCodeStream(CodeGenTypeEnum codeGenType, Flux<String> flux, Long appId) {
         StringBuilder sb = new StringBuilder();
-        // 拼接每个字符块到末尾，接收完成后保存到文件
         return flux.doOnNext(sb::append).doOnComplete(() -> {
             try {
+                log.info("LLM生成结果：{}", sb);
                 Object obj = CodeParserExecutor.execute(sb.toString(), codeGenType);
                 CodeSaverExecutor.execute(obj, codeGenType, appId);
             } catch (Exception e) {
-                throw new BusinessException(ErrorCode.OPERATION_ERROR, "出现错误，" + e.getMessage());
+                throw new BusinessException(ErrorCode.OPERATION_ERROR, "在代码解析、文件保存的过程中，出现了错误：" + e.getMessage());
             }
         });
     }

@@ -19,10 +19,11 @@ public class MultiFileCodeParser implements CodeParser<MultiFileCodeResult> {
 
     public MultiFileCodeResult parse(String codeContent) {
         MultiFileCodeResult result = new MultiFileCodeResult();
-        // 提取各类代码
-        String htmlCode = CodeParser.extractCodeByPattern(codeContent, HTML_CODE_PATTERN);
-        String cssCode = CodeParser.extractCodeByPattern(codeContent, CSS_CODE_PATTERN);
-        String jsCode = CodeParser.extractCodeByPattern(codeContent, JS_CODE_PATTERN);
+        // 提取各类代码：以下一个语言块的起始为右边界，块内最后一个 ``` 为闭合标记
+        // 这样即使代码内容中包含 Markdown 代码块示例也不会被误截断
+        String htmlCode = CodeParser.extractCodeBlock(codeContent, "html", "css|javascript|js");
+        String cssCode = CodeParser.extractCodeBlock(codeContent, "css", "javascript|js");
+        String jsCode = CodeParser.extractCodeBlock(codeContent, "javascript|js", null);
         // 设置HTML代码
         if (htmlCode != null && !htmlCode.trim().isEmpty()) {
             result.setHtmlCode(htmlCode.trim());

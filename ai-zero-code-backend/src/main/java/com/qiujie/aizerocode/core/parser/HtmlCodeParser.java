@@ -19,8 +19,8 @@ public class HtmlCodeParser implements CodeParser<HtmlCodeResult> {
      */
     public HtmlCodeResult parse(String codeContent) {
         HtmlCodeResult result = new HtmlCodeResult();
-        // 提取 HTML 代码
-        String htmlCode = CodeParser.extractCodeByPattern(codeContent, HTML_CODE_PATTERN);
+        // 提取 HTML 代码：以内容末尾为右边界，块内最后一个 ``` 为闭合标记
+        String htmlCode = CodeParser.extractCodeBlock(codeContent, "html", null);
         if (htmlCode != null && !htmlCode.trim().isEmpty()) {
             result.setHtmlCode(htmlCode.trim());
         } else {
