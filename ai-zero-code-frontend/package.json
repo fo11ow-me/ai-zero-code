@@ -18,12 +18,15 @@
   "dependencies": {
     "ant-design-vue": "^4.2.6",
     "axios": "^1.18.1",
+    "highlight.js": "^11.11.1",
+    "markdown-it": "^14.3.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.38",
     "vue-router": "^5.1.0"
   },
   "devDependencies": {
     "@tsconfig/node24": "^24.0.4",
+    "@types/markdown-it": "^14.1.2",
     "@types/node": "^24.13.2",
     "@umijs/openapi": "^1.14.1",
     "@vitejs/plugin-vue": "^6.0.7",

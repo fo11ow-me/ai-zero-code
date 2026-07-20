@@ -19,6 +19,14 @@ export default defineConfig({
       dts: 'src/auto-imports.d.ts',
     }),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8123',
+        changeOrigin: true,
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
