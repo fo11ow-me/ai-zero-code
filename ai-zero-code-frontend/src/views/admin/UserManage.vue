@@ -13,35 +13,35 @@
       </a-form-item>
     </a-form>
     <a-divider />
-  </div>
 
-  <a-table
-    :columns="columns"
-    :data-source="data"
-    :scroll="{ x: 1500 }"
-    :pagination="pagination"
-    @change="doTableChange"
-  >
-    <template #bodyCell="{ column, record }">
-      <template v-if="column.dataIndex === 'userAvatar'">
-        <a-image :src="record.userAvatar" :width="120" />
+    <a-table
+      :columns="columns"
+      :data-source="data"
+      :scroll="{ x: 1200 }"
+      :pagination="pagination"
+      @change="doTableChange"
+    >
+      <template #bodyCell="{ column, record }">
+        <template v-if="column.dataIndex === 'userAvatar'">
+          <a-image :src="record.userAvatar" :width="120" />
+        </template>
+        <template v-else-if="column.dataIndex === 'userRole'">
+          <div v-if="record.userRole === 'admin'">
+            <a-tag color="green">管理员</a-tag>
+          </div>
+          <div v-else>
+            <a-tag color="blue">普通用户</a-tag>
+          </div>
+        </template>
+        <template v-else-if="column.dataIndex === 'createTime'">
+          {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
+        </template>
+        <template v-else-if="column.key === 'action'">
+          <a-button danger @click="doDelete(record.id)">删除</a-button>
+        </template>
       </template>
-      <template v-else-if="column.dataIndex === 'userRole'">
-        <div v-if="record.userRole === 'admin'">
-          <a-tag color="green">管理员</a-tag>
-        </div>
-        <div v-else>
-          <a-tag color="blue">普通用户</a-tag>
-        </div>
-      </template>
-      <template v-else-if="column.dataIndex === 'createTime'">
-        {{ dayjs(record.createTime).format('YYYY-MM-DD HH:mm:ss') }}
-      </template>
-      <template v-else-if="column.key === 'action'">
-        <a-button danger @click="doDelete(record.id)">删除</a-button>
-      </template>
-    </template>
-  </a-table>
+    </a-table>
+  </div>
 </template>
 <script lang="ts" setup>
 import { message } from 'ant-design-vue'
@@ -122,9 +122,9 @@ const pagination = computed(() => {
   }
 })
 
-const doTableChange = (pagination: any) => {
-  searchParams.pageNum = pagination.current
-  searchParams.pageSize = pagination.pageSize
+const doTableChange = (page: { current: number; pageSize: number }) => {
+  searchParams.pageNum = page.current
+  searchParams.pageSize = page.pageSize
   fetchData()
 }
 
@@ -148,3 +148,19 @@ const doDelete = async (id: string) => {
   }
 }
 </script>
+
+<style scoped>
+#userManage {
+  padding: 24px;
+  background: white;
+  margin-top: 16px;
+}
+
+:deep(.ant-table-thead > tr > th) {
+  text-align: center;
+}
+
+:deep(.ant-table-tbody > tr > td) {
+  text-align: center;
+}
+</style>
