@@ -2,6 +2,7 @@ package com.qiujie.aizerocode.core;
 
 
 import com.qiujie.aizerocode.ai.AiCodegenService;
+import com.qiujie.aizerocode.ai.AiCodegenServiceFactory;
 import com.qiujie.aizerocode.ai.model.HtmlCodeResult;
 import com.qiujie.aizerocode.ai.model.MultiFileCodeResult;
 import com.qiujie.aizerocode.core.parser.CodeParserExecutor;
@@ -26,7 +27,7 @@ public class AiCodegenFacade {
 
 
     @Autowired
-    private AiCodegenService aiCodegenService;
+    private AiCodegenServiceFactory aiCodegenServiceFactory;
 
 
     /**
@@ -41,6 +42,8 @@ public class AiCodegenFacade {
         if (codeGenType == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "代码生成模式不能为空");
         }
+        // 根据应用id获取AiCodegenService实例
+        AiCodegenService aiCodegenService = aiCodegenServiceFactory.getAiCodegenService(appId);
         return switch (codeGenType) {
             case HTML -> {
                 HtmlCodeResult htmlCodeResult = aiCodegenService.generateHtmlCode(userMessage);
@@ -68,6 +71,8 @@ public class AiCodegenFacade {
         if (codeGenType == null) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR, "代码生成模式不能为空");
         }
+        // 根据应用id获取AiCodegenService实例
+        AiCodegenService aiCodegenService = aiCodegenServiceFactory.getAiCodegenService(appId);
         return switch (codeGenType) {
             case HTML -> {
                 Flux<String> flux = aiCodegenService.generateHtmlCodeStream(userMessage);
@@ -99,7 +104,8 @@ public class AiCodegenFacade {
                 Object obj = CodeParserExecutor.execute(sb.toString(), codeGenType);
                 CodeSaverExecutor.execute(obj, codeGenType, appId);
             } catch (Exception e) {
-                throw new BusinessException(ErrorCode.OPERATION_ERROR, "在代码解析、文件保存的过程中，出现了错误：" + e.getMessage());
+//                throw new BusinessException(ErrorCode.OPERATION_ERROR, "在代码解析、文件保存的过程中，出现了错误：" + e.getMessage());
+                log.error("在代码解析、文件保存的过程中，出现了错误：{}", e.getMessage());
             }
         });
     }

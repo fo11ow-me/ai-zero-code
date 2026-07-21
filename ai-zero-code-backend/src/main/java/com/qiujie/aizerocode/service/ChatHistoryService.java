@@ -6,6 +6,7 @@ import com.mybatisflex.core.service.IService;
 import com.qiujie.aizerocode.model.dto.chathistory.ChatHistoryQueryRequest;
 import com.qiujie.aizerocode.model.entity.ChatHistory;
 import com.qiujie.aizerocode.model.entity.User;
+import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 
 import java.time.LocalDateTime;
 
@@ -59,5 +60,14 @@ public interface ChatHistoryService extends IService<ChatHistory> {
      */
     QueryWrapper getQueryWrapper(ChatHistoryQueryRequest chatHistoryQueryRequest);
 
+    /**
+     * 加载历史消息
+     *
+     * @param appId
+     * @param chatMemory
+     * @param maxMessages
+     * @return
+     */
+    Integer loadChatHistory(Long appId, MessageWindowChatMemory chatMemory, int maxMessages);
 
 }

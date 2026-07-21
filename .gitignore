@@ -38,6 +38,7 @@ build/
 .playwright-mcp/
 tmp/
 docker-compose.yml
+deploy/
 .claude/
 application-local.yml
 test/
