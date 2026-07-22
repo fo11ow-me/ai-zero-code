@@ -66,6 +66,13 @@
             <version>1.17.2-beta27</version>
         </dependency>
 
+        <!-- Spring Session + Redis -->
+        <dependency>
+            <groupId>org.springframework.session</groupId>
+            <artifactId>spring-session-data-redis</artifactId>
+        </dependency>
+
+
         <!--本地缓存-->
         <dependency>
             <groupId>com.github.ben-manes.caffeine</groupId>

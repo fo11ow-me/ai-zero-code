@@ -17,11 +17,20 @@ spring:
     time-zone: Asia/Shanghai
   profiles:
     active: local
+  # session 配置
+  session:
+    store-type: redis
+    # session 3 天过期
+    timeout: 259200
 
 server:
   port: 8123
   servlet:
     context-path: /api
+    # cookie 3 天过期
+    session:
+      cookie:
+        max-age: 259200
 
 springdoc:
   group-configs:
