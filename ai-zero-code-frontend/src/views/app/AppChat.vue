@@ -506,7 +506,7 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
       try {
         // 解析JSON包装的数据
         const parsed = JSON.parse(event.data)
-        const content = parsed.d
+        const content = parsed.v
 
         // 拼接内容
         if (content !== undefined && content !== null) {
