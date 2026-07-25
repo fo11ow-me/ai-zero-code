@@ -3,8 +3,13 @@ package com.qiujie.aizerocode.ai;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.qiujie.aizerocode.ai.tools.FileWriteTool;
+import com.qiujie.aizerocode.exception.BusinessException;
+import com.qiujie.aizerocode.exception.ErrorCode;
+import com.qiujie.aizerocode.model.enums.CodeGenTypeEnum;
 import com.qiujie.aizerocode.service.ChatHistoryService;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
+import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
@@ -27,14 +32,16 @@ public class AiCodegenServiceFactory {
     private ChatModel chatModel;
 
     @Autowired
-    private StreamingChatModel streamingChatModel;
+    private StreamingChatModel openAiStreamingChatModel;
+
+    @Autowired
+    private StreamingChatModel reasoningStreamingChatModel;
 
     @Autowired
     private RedisChatMemoryStore redisChatMemoryStore;
 
     @Autowired
     private ChatHistoryService chatHistoryService;
-
 
     /**
      * AI 服务实例缓存
@@ -54,11 +61,15 @@ public class AiCodegenServiceFactory {
 
 
     public AiCodegenService getAiCodegenService(Long appId) {
-        return serviceCache.get(appId, this::createAiCodegenService);
+        return getAiCodegenService(appId, CodeGenTypeEnum.HTML);
+    }
+
+    public AiCodegenService getAiCodegenService(Long appId, CodeGenTypeEnum codeGenType) {
+        return serviceCache.get(appId, k -> createAiCodegenService(appId, codeGenType));
     }
 
 
-    private AiCodegenService createAiCodegenService(Long appId) {
+    private AiCodegenService createAiCodegenService(Long appId, CodeGenTypeEnum codeGenType) {
         log.info("为appId: {}的应用创建AI服务实例", appId);
         MessageWindowChatMemory chatMemory = MessageWindowChatMemory.builder()
                 .id(appId)
@@ -66,11 +77,28 @@ public class AiCodegenServiceFactory {
                 .maxMessages(20)
                 .build();
         chatHistoryService.loadChatHistory(appId, chatMemory, 20);
-        return AiServices.builder(AiCodegenService.class)
-                .chatModel(chatModel)
-                .streamingChatModel(streamingChatModel)
-                .chatMemory(chatMemory)
-                .build();
+        switch (codeGenType) {
+            case VUE_PROJECT -> {
+                return AiServices.builder(AiCodegenService.class)
+                        .chatModel(chatModel)
+                        .streamingChatModel(reasoningStreamingChatModel)
+                        .chatMemoryProvider(memoryId -> chatMemory)
+                        .tools(new FileWriteTool())
+                        .hallucinatedToolNameStrategy( // 处理工具调用幻觉问题
+                                toolExecutionRequest -> ToolExecutionResultMessage.from(toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name())
+                        )
+                        .build();
+            }
+            case HTML, MULTI_FILE -> {
+                return AiServices.builder(AiCodegenService.class)
+                        .chatModel(chatModel)
+                        .streamingChatModel(openAiStreamingChatModel)
+                        .chatMemory(chatMemory)
+                        .build();
+            }
+            default ->
+                    throw new BusinessException(ErrorCode.PARAMS_ERROR, "不支持的代码生成类型: " + codeGenType.getValue());
+        }
     }
 
 

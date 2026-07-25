@@ -9,6 +9,8 @@ import cn.hutool.core.util.StrUtil;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.qiujie.aizerocode.core.AiCodegenFacade;
+import com.qiujie.aizerocode.core.builder.VueProjectBuilder;
+import com.qiujie.aizerocode.core.handler.StreamHandlerExecutor;
 import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
 import com.qiujie.aizerocode.exception.ThrowUtils;
@@ -58,6 +60,12 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
 
     @Autowired
     private ChatHistoryService chatHistoryService;
+
+    @Autowired
+    private StreamHandlerExecutor streamHandlerExecutor;
+
+    @Autowired
+    private VueProjectBuilder vueProjectBuilder;
 
     @Override
     public AppVO getAppVO(App app) {
@@ -151,15 +159,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         // 6. 调用ai生成代码流
         Flux<String> flux = aiCodegenFacade.generateAndSaveCodeStream(userMessage, codeGenTypeEnum, appId);
         // 7. 返回流，并将ai消息存放到数据库
-        StringBuilder sb = new StringBuilder();
-        return flux.doOnNext(sb::append).doOnComplete(() -> {
-                    // 8. 保存ai消息
-                    chatHistoryService.addChatMessage(appId, lginUser.getId(), sb.toString(), ChatHistoryMessageTypeEnum.AI.getValue());
-                })
-                .doOnError(error -> {
-                    chatHistoryService.addChatMessage(appId, lginUser.getId(), "AI回复失败：" + error.getMessage(), ChatHistoryMessageTypeEnum.AI.getValue());
-                })
-                ;
+        return streamHandlerExecutor.execute(appId, codeGenTypeEnum, lginUser, flux);
     }
 
 
@@ -184,7 +184,14 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         String sourcePath = CODE_SAVE_PATH + File.separator + app.getCodeGenType() + File.separator + appId;
         File sourceDir = new File(sourcePath);
         ThrowUtils.throwIf(!sourceDir.exists() || !sourceDir.isDirectory(), ErrorCode.SYSTEM_ERROR, "源代码尚未生成，请先生成代码");
-        // 5. 生成部署标识并复制文件到部署目录
+        // 5. vue项目单独处理
+        if (app.getCodeGenType().equals(CodeGenTypeEnum.VUE_PROJECT.getValue())) {
+            boolean result = vueProjectBuilder.buildProject(sourcePath);
+            ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "Vue 项目构建失败，请重试！");
+            // 调整sourceDir为 dist
+            sourceDir = new File(sourcePath, "dist");
+        }
+        // 6. 生成部署标识并复制文件到部署目录
         String deployKey = app.getDeployKey();
         deployKey = StrUtil.isBlank(deployKey) ? RandomUtil.randomString(10) : deployKey;
         String targetPath = APP_DEPLOY_PATH + File.separator + deployKey;
@@ -193,7 +200,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         } catch (IORuntimeException e) {
             throw new BusinessException(ErrorCode.OPERATION_ERROR, "部署失败：" + e.getMessage());
         }
-        // 6. 更新应用部署信息
+        // 7. 更新应用部署信息
         App updateApp = new App();
         updateApp.setId(appId);
         updateApp.setDeployKey(deployKey);

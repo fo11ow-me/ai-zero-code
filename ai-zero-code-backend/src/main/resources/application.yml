@@ -15,8 +15,6 @@ spring:
       ttl: 3600
   jackson:
     time-zone: Asia/Shanghai
-  profiles:
-    active: local
   # session 配置
   session:
     store-type: redis
@@ -45,3 +43,30 @@ knife4j:
 logging:
   level:
     com.qiujie.aizerocode.mapper: DEBUG
+
+# AI 代码生成 - DeepSeek
+langchain4j:
+  open-ai:
+    chat-model: # 结构化输出
+      base-url: https://api.deepseek.com
+      api-key: ${DEEPSEEK_API_KEY}
+      model-name: deepseek-v4-flash
+      log-requests: true
+      log-responses: true
+      max-tokens: 8192
+      strict-json-schema: true
+      response-format: json_object
+    streaming-chat-model: # 流式输出
+      base-url: https://api.deepseek.com
+      api-key: ${DEEPSEEK_API_KEY}
+      model-name: deepseek-v4-flash
+      log-requests: true
+      log-responses: true
+      max-tokens: 8192
+    reasoning-model:
+      base-url: https://api.deepseek.com
+      api-key: ${DEEPSEEK_API_KEY}
+      model-name: deepseek-v4-flash
+      log-requests: true
+      log-responses: true
+      max-tokens: 65536
