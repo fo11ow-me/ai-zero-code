@@ -25,6 +25,7 @@ import com.qiujie.aizerocode.model.vo.AppVO;
 import com.qiujie.aizerocode.model.vo.UserVO;
 import com.qiujie.aizerocode.service.AppService;
 import com.qiujie.aizerocode.service.ChatHistoryService;
+import com.qiujie.aizerocode.service.ScreenshotService;
 import com.qiujie.aizerocode.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
@@ -66,6 +67,10 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
 
     @Autowired
     private VueProjectBuilder vueProjectBuilder;
+
+
+    @Autowired
+    private ScreenshotService screenshotService;
 
     @Override
     public AppVO getAppVO(App app) {
@@ -207,7 +212,29 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         updateApp.setDeployedTime(LocalDateTime.now());
         boolean result = this.updateById(updateApp);
         ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "部署失败");
-        return String.format("%s/%S", APP_DEPLOY_HOST, deployKey);
+        String deployUrl = String.format("%s/%S", APP_DEPLOY_HOST, deployKey);
+        // 8. 异步生成应用截图
+        generateAppScreenshotAsync(appId, deployUrl);
+        return deployUrl;
+    }
+
+
+    /**
+     * 异步生成应用截图
+     *
+     * @param appId
+     * @param deployUrl
+     */
+    public void generateAppScreenshotAsync(Long appId, String deployUrl) {
+        Thread.ofVirtual().start(() -> {
+            String url = screenshotService.takeAndUploadScreenshot(deployUrl);
+            // 将截图url保存到数据库
+            App updateApp = new App();
+            updateApp.setId(appId);
+            updateApp.setCover(url);
+            boolean result = this.updateById(updateApp);
+            ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR, "应用截图更新失败");
+        });
     }
 
 

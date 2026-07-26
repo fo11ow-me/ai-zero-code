@@ -24,6 +24,11 @@ public interface AppConstant {
      */
     public static final String CODE_SAVE_PATH = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "code";
 
+    /**
+     * 截图保存路径
+     */
+    public static final String SCREENSHOT_SAVE_PATH = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "screenshot";
+
 
     /**
      * 应用部署路径

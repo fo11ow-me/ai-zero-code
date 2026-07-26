@@ -122,8 +122,7 @@ public class AiCodegenFacade {
                         sink.complete();
                     })
                     .onError((Throwable error) -> {
-                        log.error("TokenStream处理错误：{}", error.getMessage());
-                        error.printStackTrace();
+                        log.error("TokenStream处理错误：{}", error.getMessage(), error);
                         sink.error(error);
                     })
                     .start();
