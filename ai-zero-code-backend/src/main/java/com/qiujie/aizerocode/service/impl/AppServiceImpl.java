@@ -8,12 +8,14 @@ import cn.hutool.core.util.RandomUtil;
 import cn.hutool.core.util.StrUtil;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
+import com.qiujie.aizerocode.ai.AiCodegenTypeRoutingService;
 import com.qiujie.aizerocode.core.AiCodegenFacade;
 import com.qiujie.aizerocode.core.builder.VueProjectBuilder;
 import com.qiujie.aizerocode.core.handler.StreamHandlerExecutor;
 import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
 import com.qiujie.aizerocode.exception.ThrowUtils;
+import com.qiujie.aizerocode.model.dto.app.AppAddRequest;
 import com.qiujie.aizerocode.model.dto.app.AppDeployRequest;
 import com.qiujie.aizerocode.model.dto.app.AppQueryRequest;
 import com.qiujie.aizerocode.model.entity.App;
@@ -27,6 +29,7 @@ import com.qiujie.aizerocode.service.AppService;
 import com.qiujie.aizerocode.service.ChatHistoryService;
 import com.qiujie.aizerocode.service.ScreenshotService;
 import com.qiujie.aizerocode.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +74,32 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
 
     @Autowired
     private ScreenshotService screenshotService;
+
+    @Autowired
+    private AiCodegenTypeRoutingService aiCodegenTypeRoutingService;
+
+
+    @Override
+    public Long createApp(AppAddRequest appAddRequest, HttpServletRequest request) {
+        // 参数校验
+        String initPrompt = appAddRequest.getInitPrompt();
+        ThrowUtils.throwIf(StrUtil.isBlank(initPrompt), ErrorCode.PARAMS_ERROR, "初始化 prompt 不能为空");
+        // 获取当前登录用户
+        User loginUser = userService.getLoginUser(request);
+        // 构造入库对象
+        App app = new App();
+        BeanUtil.copyProperties(appAddRequest, app);
+        app.setUserId(loginUser.getId());
+        // 应用名称暂时为 initPrompt 前 12 位
+        app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
+        // 智能选择代码生成模式
+        CodeGenTypeEnum codeGenTypeEnum = aiCodegenTypeRoutingService.routeCodegenType(initPrompt);
+        app.setCodeGenType(codeGenTypeEnum.getValue());
+        // 插入数据库
+        boolean result = save(app);
+        ThrowUtils.throwIf(!result, ErrorCode.OPERATION_ERROR);
+        return app.getId();
+    }
 
     @Override
     public AppVO getAppVO(App app) {

@@ -2,11 +2,13 @@ package com.qiujie.aizerocode.service;
 
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.core.service.IService;
+import com.qiujie.aizerocode.model.dto.app.AppAddRequest;
 import com.qiujie.aizerocode.model.dto.app.AppDeployRequest;
 import com.qiujie.aizerocode.model.dto.app.AppQueryRequest;
 import com.qiujie.aizerocode.model.entity.App;
 import com.qiujie.aizerocode.model.entity.User;
 import com.qiujie.aizerocode.model.vo.AppVO;
+import jakarta.servlet.http.HttpServletRequest;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
@@ -17,6 +19,16 @@ import java.util.List;
  * @author qiujie
  */
 public interface AppService extends IService<App> {
+
+
+    /**
+     * 创建应用
+     *
+     * @param appAddRequest
+     * @param request
+     * @return
+     */
+    Long createApp(AppAddRequest appAddRequest, HttpServletRequest request);
 
     /**
      * 获取应用视图
