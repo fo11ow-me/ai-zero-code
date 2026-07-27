@@ -24,7 +24,7 @@ spring:
     timeout: 259200
 
 server:
-  port: 8123
+  port: 7000
   servlet:
     context-path: /api
     # cookie 3 天过期
@@ -55,7 +55,7 @@ langchain4j:
       model-name: deepseek-v4-flash
       log-requests: true
       log-responses: true
-      max-tokens: 8192
+      max-tokens: 32768
 #      strict-json-schema: true
 #      response-format: json_object
     streaming-chat-model: # 流式输出
@@ -64,7 +64,7 @@ langchain4j:
       model-name: deepseek-v4-flash
       log-requests: true
       log-responses: true
-      max-tokens: 8192
+      max-tokens: 32768
     reasoning-model:
       base-url: https://api.deepseek.com
       api-key: ${API_KEY}

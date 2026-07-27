@@ -7,7 +7,7 @@
  * VITE_DEPLOY_DOMAIN=http://localhost
  *
  * # API 基础地址
- * VITE_API_BASE_URL=http://localhost:8123/api
+ * VITE_API_BASE_URL=http://localhost:7000/api
  *
  * 生产环境可以创建 .env.production 文件：
  *
