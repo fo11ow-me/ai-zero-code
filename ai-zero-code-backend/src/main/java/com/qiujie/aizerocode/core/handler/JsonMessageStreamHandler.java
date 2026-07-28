@@ -5,6 +5,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.qiujie.aizerocode.ai.model.message.*;
+import com.qiujie.aizerocode.ai.tools.BaseTool;
+import com.qiujie.aizerocode.ai.tools.ToolManager;
 import com.qiujie.aizerocode.constant.AppConstant;
 import com.qiujie.aizerocode.core.builder.VueProjectBuilder;
 import com.qiujie.aizerocode.model.entity.User;
@@ -35,6 +37,10 @@ public class JsonMessageStreamHandler {
 
     @Autowired
     private VueProjectBuilder vueProjectBuilder;
+
+
+    @Autowired
+    private ToolManager toolManager;
 
 
     public Flux<String> handle(Long appId, User loginUser, Flux<String> flux) {
@@ -81,7 +87,8 @@ public class JsonMessageStreamHandler {
                 if (toolId != null && !seenToolIds.contains(toolId)) {
                     // 第一次调用这个工具，记录 ID 并完整返回工具信息
                     seenToolIds.add(toolId);
-                    return "\n\n[选择工具] 写入文件\n\n";
+                    BaseTool tool = toolManager.getTool(toolRequestMessage.getName());
+                    return String.format("\n\n[选择工具] %s\n\n", tool.getDisplayName());
                 } else {
                     // 不是第一次调用这个工具，直接返回空
                     return "";
@@ -90,15 +97,8 @@ public class JsonMessageStreamHandler {
             case TOOL_EXECUTED -> {
                 ToolExecutedMessage toolExecutedMessage = JSONUtil.toBean(chunk, ToolExecutedMessage.class);
                 JSONObject jsonObject = JSONUtil.parseObj(toolExecutedMessage.getArguments());
-                String relativeFilePath = jsonObject.getStr("relativeFilePath");
-                String suffix = FileUtil.getSuffix(relativeFilePath);
-                String content = jsonObject.getStr("content");
-                String result = String.format("""
-                        [工具调用] 写入文件 %s
-                        ```%s
-                        %s
-                        ```
-                        """, relativeFilePath, suffix, content);
+                BaseTool tool = toolManager.getTool(toolExecutedMessage.getName());
+                String result = tool.generateToolExecutedResult(jsonObject);
                 // 输出前端和要持久化的内容
                 String output = String.format("\n\n%s\n\n", result);
                 sb.append(output);

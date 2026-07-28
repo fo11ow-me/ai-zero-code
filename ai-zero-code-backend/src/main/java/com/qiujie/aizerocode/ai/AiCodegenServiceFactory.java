@@ -3,7 +3,7 @@ package com.qiujie.aizerocode.ai;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
-import com.qiujie.aizerocode.ai.tools.FileWriteTool;
+import com.qiujie.aizerocode.ai.tools.*;
 import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
 import com.qiujie.aizerocode.model.enums.CodeGenTypeEnum;
@@ -42,6 +42,9 @@ public class AiCodegenServiceFactory {
 
     @Autowired
     private ChatHistoryService chatHistoryService;
+
+    @Autowired
+    private ToolManager toolManager;
 
     /**
      * AI 服务实例缓存
@@ -83,7 +86,7 @@ public class AiCodegenServiceFactory {
                         .chatModel(chatModel)
                         .streamingChatModel(reasoningStreamingChatModel)
                         .chatMemoryProvider(memoryId -> chatMemory)
-                        .tools(new FileWriteTool())
+                        .tools(toolManager.getTools())
                         .hallucinatedToolNameStrategy( // 处理工具调用幻觉问题
                                 toolExecutionRequest -> ToolExecutionResultMessage.from(toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name())
                         )
