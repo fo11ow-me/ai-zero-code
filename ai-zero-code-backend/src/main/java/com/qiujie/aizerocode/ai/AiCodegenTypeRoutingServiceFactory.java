@@ -18,7 +18,7 @@ public class AiCodegenTypeRoutingServiceFactory {
 
 
     @Bean
-    public AiCodegenTypeRoutingService getAiCodegenTypeRoutingService() {
+    public AiCodegenTypeRoutingService aiCodegenTypeRoutingService() {
         return AiServices.builder(AiCodegenTypeRoutingService.class)
                 .chatModel(chatModel)
                 .build();

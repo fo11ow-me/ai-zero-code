@@ -80,3 +80,10 @@ oss:
     access-key-id: ${ACCESS_KEY_ID}
     access-key-secret: ${ACCESS_KEY_SECRET}
     bucket-name: ${BUCKET_NAME}
+
+pexels:
+  api-key: ${PEXELS_API_KEY}
+
+dashscope:
+  api-key: ${DASH_SCOPE_API_KEY}
+  img-model: wanx-v1
