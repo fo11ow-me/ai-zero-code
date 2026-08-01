@@ -6,6 +6,7 @@ import com.qiujie.aizerocode.langgraph4j.tools.MermaidDiagramTool;
 import com.qiujie.aizerocode.langgraph4j.tools.UndrawIllustrationTool;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.service.AiServices;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +16,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class ImageCollectionServiceFactory {
 
-    @Autowired
+    @Resource(name = "openAiChatModel")
     private ChatModel chatModel;
 
     @Autowired

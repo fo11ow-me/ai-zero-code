@@ -4,7 +4,6 @@ import com.qiujie.aizerocode.core.builder.VueProjectBuilder;
 import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
 import com.qiujie.aizerocode.langgraph4j.state.WorkflowContext;
-import com.qiujie.aizerocode.model.enums.CodeGenTypeEnum;
 import com.qiujie.aizerocode.utils.SpringContextUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.bsc.langgraph4j.action.AsyncNodeAction;
