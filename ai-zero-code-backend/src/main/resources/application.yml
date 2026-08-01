@@ -56,8 +56,9 @@ langchain4j:
       log-requests: true
       log-responses: true
       max-tokens: 32768
-#      strict-json-schema: true
-#      response-format: json_object
+      reasoning-effort: "low"
+    #      strict-json-schema: true
+    #      response-format: json_object
     streaming-chat-model: # 流式输出
       base-url: https://api.deepseek.com
       api-key: ${API_KEY}
@@ -65,13 +66,22 @@ langchain4j:
       log-requests: true
       log-responses: true
       max-tokens: 32768
-    reasoning-model:
+      reasoning-effort: "low"
+    reasoning-streaming-chat-model:
       base-url: https://api.deepseek.com
       api-key: ${API_KEY}
       model-name: deepseek-v4-flash
       log-requests: true
       log-responses: true
       max-tokens: 65536
+    routing-chat-model:
+      base-url: https://api.deepseek.com
+      api-key: ${API_KEY}
+      model-name: deepseek-v4-flash
+      log-requests: true
+      log-responses: true
+      reasoning-effort: "low"
+      temperature: 0
 
 # 阿里云 OSS 对象存储
 oss:

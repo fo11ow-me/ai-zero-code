@@ -9,6 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.mybatisflex.spring.service.impl.ServiceImpl;
 import com.qiujie.aizerocode.ai.AiCodegenTypeRoutingService;
+import com.qiujie.aizerocode.ai.AiCodegenTypeRoutingServiceFactory;
 import com.qiujie.aizerocode.core.AiCodegenFacade;
 import com.qiujie.aizerocode.core.builder.VueProjectBuilder;
 import com.qiujie.aizerocode.core.handler.StreamHandlerExecutor;
@@ -76,7 +77,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
     private ScreenshotService screenshotService;
 
     @Autowired
-    private AiCodegenTypeRoutingService aiCodegenTypeRoutingService;
+    private AiCodegenTypeRoutingServiceFactory aiCodegenTypeRoutingServiceFactory;
 
 
     @Override
@@ -92,6 +93,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         app.setUserId(loginUser.getId());
         // 应用名称暂时为 initPrompt 前 12 位
         app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
+        // 创建新的ai智能路由服务
+        AiCodegenTypeRoutingService aiCodegenTypeRoutingService = aiCodegenTypeRoutingServiceFactory.createAiCodegenTypeRoutingService();
         // 智能选择代码生成模式
         CodeGenTypeEnum codeGenTypeEnum = aiCodegenTypeRoutingService.routeCodegenType(initPrompt);
         app.setCodeGenType(codeGenTypeEnum.getValue());

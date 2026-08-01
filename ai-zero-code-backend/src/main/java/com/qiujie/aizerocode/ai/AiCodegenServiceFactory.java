@@ -8,12 +8,14 @@ import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
 import com.qiujie.aizerocode.model.enums.CodeGenTypeEnum;
 import com.qiujie.aizerocode.service.ChatHistoryService;
+import com.qiujie.aizerocode.utils.SpringContextUtil;
 import dev.langchain4j.community.store.memory.chat.redis.RedisChatMemoryStore;
 import dev.langchain4j.data.message.ToolExecutionResultMessage;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import dev.langchain4j.model.chat.ChatModel;
 import dev.langchain4j.model.chat.StreamingChatModel;
 import dev.langchain4j.service.AiServices;
+import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -28,14 +30,8 @@ import java.time.Duration;
 @Slf4j
 public class AiCodegenServiceFactory {
 
-    @Autowired
+    @Resource(name = "openAiChatModel")
     private ChatModel chatModel;
-
-    @Autowired
-    private StreamingChatModel openAiStreamingChatModel;
-
-    @Autowired
-    private StreamingChatModel reasoningStreamingChatModel;
 
     @Autowired
     private RedisChatMemoryStore redisChatMemoryStore;
@@ -82,9 +78,10 @@ public class AiCodegenServiceFactory {
         chatHistoryService.loadChatHistory(appId, chatMemory, 20);
         switch (codeGenType) {
             case VUE_PROJECT -> {
+                StreamingChatModel reasoningStreamingChatModelPrototype = SpringContextUtil.getBean("reasoningStreamingChatModelPrototype", StreamingChatModel.class);
                 return AiServices.builder(AiCodegenService.class)
                         .chatModel(chatModel)
-                        .streamingChatModel(reasoningStreamingChatModel)
+                        .streamingChatModel(reasoningStreamingChatModelPrototype)
                         .chatMemoryProvider(memoryId -> chatMemory)
                         .tools(toolManager.getTools())
                         .hallucinatedToolNameStrategy( // 处理工具调用幻觉问题
@@ -93,9 +90,10 @@ public class AiCodegenServiceFactory {
                         .build();
             }
             case HTML, MULTI_FILE -> {
+                StreamingChatModel streamingChatModelPrototype = SpringContextUtil.getBean("streamingChatModelPrototype", StreamingChatModel.class);
                 return AiServices.builder(AiCodegenService.class)
                         .chatModel(chatModel)
-                        .streamingChatModel(openAiStreamingChatModel)
+                        .streamingChatModel(streamingChatModelPrototype)
                         .chatMemory(chatMemory)
                         .build();
             }

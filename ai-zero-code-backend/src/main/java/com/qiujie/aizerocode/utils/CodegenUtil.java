@@ -1,4 +1,4 @@
-package com.qiujie.aizerocode.generator;
+package com.qiujie.aizerocode.utils;
 
 import cn.hutool.core.lang.Dict;
 import cn.hutool.setting.yaml.YamlUtil;
@@ -14,7 +14,7 @@ import java.util.Map;
  *
  * @author qiujie
  */
-public class Codegen {
+public class CodegenUtil {
 
     private static final String[] TABLE_NAMES = {"chat_history"};
 
