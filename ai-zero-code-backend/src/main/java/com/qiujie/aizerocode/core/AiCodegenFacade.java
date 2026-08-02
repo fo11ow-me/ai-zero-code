@@ -9,6 +9,7 @@ import com.qiujie.aizerocode.ai.model.MultiFileCodeResult;
 import com.qiujie.aizerocode.ai.model.message.AiResponseMessage;
 import com.qiujie.aizerocode.ai.model.message.ToolExecutedMessage;
 import com.qiujie.aizerocode.ai.model.message.ToolRequestMessage;
+import com.qiujie.aizerocode.core.builder.VueProjectBuilder;
 import com.qiujie.aizerocode.core.parser.CodeParserExecutor;
 import com.qiujie.aizerocode.core.saver.CodeSaverExecutor;
 import com.qiujie.aizerocode.exception.BusinessException;
@@ -24,6 +25,9 @@ import reactor.core.publisher.Flux;
 
 import java.io.File;
 
+import static com.qiujie.aizerocode.constant.AppConstant.CODE_SAVE_PATH;
+import static com.qiujie.aizerocode.model.enums.CodeGenTypeEnum.VUE_PROJECT;
+
 /**
  * 代码生成门面类，组合代码生成和保存功能
  */
@@ -36,6 +40,8 @@ public class AiCodegenFacade {
     @Autowired
     private AiCodegenServiceFactory aiCodegenServiceFactory;
 
+    @Autowired
+    private VueProjectBuilder vueProjectBuilder;
 
     /**
      * 生成代码并保存
@@ -91,7 +97,7 @@ public class AiCodegenFacade {
             }
             case VUE_PROJECT -> {
                 TokenStream tokenStream = aiCodegenService.generateVueProjectTokenStream(userMessage, appId);
-                yield processTokenStream(tokenStream);
+                yield processTokenStream(tokenStream, appId);
             }
             default ->
                     throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成模式：" + codeGenType.getValue());
@@ -102,9 +108,10 @@ public class AiCodegenFacade {
      * 将 TokenStream 转换为 Flux<String>，并传递工具调用信息
      *
      * @param tokenStream TokenStream 对象
+     * @param appId       应用id
      * @return Flux<String> 流式响应
      */
-    private Flux<String> processTokenStream(TokenStream tokenStream) {
+    private Flux<String> processTokenStream(TokenStream tokenStream, Long appId) {
         return Flux.create(sink -> {
             tokenStream.onPartialResponse((String partialResponse) -> {
                         AiResponseMessage aiResponseMessage = new AiResponseMessage(partialResponse);
@@ -119,6 +126,8 @@ public class AiCodegenFacade {
                         sink.next(JSONUtil.toJsonStr(toolExecutedMessage));
                     })
                     .onCompleteResponse((ChatResponse response) -> {
+                        String projectPath = CODE_SAVE_PATH + File.separator + VUE_PROJECT.getValue() + File.separator + appId;
+                        vueProjectBuilder.buildProject(projectPath);
                         sink.complete();
                     })
                     .onError((Throwable error) -> {

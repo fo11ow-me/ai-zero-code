@@ -1,14 +1,11 @@
 package com.qiujie.aizerocode.core.handler;
 
-import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import com.qiujie.aizerocode.ai.model.message.*;
 import com.qiujie.aizerocode.ai.tools.BaseTool;
 import com.qiujie.aizerocode.ai.tools.ToolManager;
-import com.qiujie.aizerocode.constant.AppConstant;
-import com.qiujie.aizerocode.core.builder.VueProjectBuilder;
 import com.qiujie.aizerocode.model.entity.User;
 import com.qiujie.aizerocode.model.enums.ChatHistoryMessageTypeEnum;
 import com.qiujie.aizerocode.service.ChatHistoryService;
@@ -17,11 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Flux;
 
-import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.qiujie.aizerocode.model.enums.CodeGenTypeEnum.VUE_PROJECT;
 
 /**
  * JSON 消息流处理器
@@ -34,9 +28,6 @@ public class JsonMessageStreamHandler {
 
     @Autowired
     private ChatHistoryService chatHistoryService;
-
-    @Autowired
-    private VueProjectBuilder vueProjectBuilder;
 
 
     @Autowired
@@ -57,8 +48,6 @@ public class JsonMessageStreamHandler {
                 .doOnComplete(() -> {
                     // 保存ai消息
                     chatHistoryService.addChatMessage(appId, loginUser.getId(), sb.toString(), ChatHistoryMessageTypeEnum.AI.getValue());
-                    String projectPath = AppConstant.CODE_SAVE_PATH + File.separator + VUE_PROJECT.getValue() + File.separator + appId;
-                    vueProjectBuilder.buildProjectAsync(projectPath);
                 })
                 .doOnError(error -> {
                     chatHistoryService.addChatMessage(appId, loginUser.getId(), "AI回复失败：" + error.getMessage(), ChatHistoryMessageTypeEnum.AI.getValue());
