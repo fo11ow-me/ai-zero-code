@@ -6,6 +6,7 @@ import cn.hutool.json.JSONUtil;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
 import com.qiujie.aizerocode.annotation.AuthCheck;
+import com.qiujie.aizerocode.annotation.RateLimit;
 import com.qiujie.aizerocode.common.BaseResponse;
 import com.qiujie.aizerocode.common.DeleteRequest;
 import com.qiujie.aizerocode.common.ResultUtils;
@@ -14,6 +15,7 @@ import com.qiujie.aizerocode.constant.UserConstant;
 import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
 import com.qiujie.aizerocode.exception.ThrowUtils;
+import com.qiujie.aizerocode.langgraph4j.model.enums.RateLimitType;
 import com.qiujie.aizerocode.model.dto.app.AppAddRequest;
 import com.qiujie.aizerocode.model.dto.app.AppAdminUpdateRequest;
 import com.qiujie.aizerocode.model.dto.app.AppDeployRequest;
@@ -63,6 +65,7 @@ public class AppController {
     private ProjectDownloadService projectDownloadService;
 
     @GetMapping(value = "/chat/code/gen", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @RateLimit(limitType = RateLimitType.USER, key = "chatToCodegen", rate = 3, rateInterval = 60, message = "ai请求过于频繁，请稍后再试")
     public Flux<ServerSentEvent<String>> chatToCodegen(@RequestParam Long appId, @RequestParam String userMessage, HttpServletRequest request) {
         ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "appId 错误");
         ThrowUtils.throwIf(StrUtil.isBlank(userMessage), ErrorCode.PARAMS_ERROR, "用户提示词不能为空");
@@ -141,7 +144,6 @@ public class AppController {
         // 7. 调用通用下载服务
         projectDownloadService.downloadProjectAsZip(sourcePath, downloadFileName, response);
     }
-
 
 
     /**
