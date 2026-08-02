@@ -13,6 +13,7 @@ public interface AppConstant {
      */
     Integer GOOD_APP_PRIORITY = 99;
 
+
     /**
      * 默认应用优先级
      */
@@ -22,20 +23,22 @@ public interface AppConstant {
     /**
      * 代码保存路径
      */
-    public static final String CODE_SAVE_PATH = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "code";
+    String CODE_SAVE_PATH = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "code";
 
     /**
      * 截图保存路径
      */
-    public static final String SCREENSHOT_SAVE_PATH = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "screenshot";
+    String SCREENSHOT_SAVE_PATH = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "screenshot";
 
 
     /**
      * 应用部署路径
      */
-    public static final String APP_DEPLOY_PATH = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "deploy";
+    String APP_DEPLOY_PATH = System.getProperty("user.dir") + File.separator + "tmp" + File.separator + "deploy";
 
 
-    public static final String APP_DEPLOY_HOST = "http://localhost";
+    String APP_DEPLOY_HOST = "http://localhost";
+
+    String GOOD_APP_CACHE_KEY = "GOOD_APP";
 
 }

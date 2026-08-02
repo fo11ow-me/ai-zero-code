@@ -5,7 +5,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.mybatisflex.core.paginate.Page;
 import com.mybatisflex.core.query.QueryWrapper;
-import com.qiujie.aizerocode.ai.AiCodegenTypeRoutingService;
 import com.qiujie.aizerocode.annotation.AuthCheck;
 import com.qiujie.aizerocode.common.BaseResponse;
 import com.qiujie.aizerocode.common.DeleteRequest;
@@ -21,13 +20,12 @@ import com.qiujie.aizerocode.model.dto.app.AppDeployRequest;
 import com.qiujie.aizerocode.model.dto.app.AppQueryRequest;
 import com.qiujie.aizerocode.model.dto.app.AppUpdateRequest;
 import com.qiujie.aizerocode.model.entity.User;
-import com.qiujie.aizerocode.model.enums.CodeGenTypeEnum;
 import com.qiujie.aizerocode.model.vo.AppVO;
 import com.qiujie.aizerocode.service.ProjectDownloadService;
 import com.qiujie.aizerocode.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.jspecify.annotations.NonNull;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.ServerSentEvent;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.qiujie.aizerocode.constant.AppConstant.CODE_SAVE_PATH;
+import static com.qiujie.aizerocode.constant.AppConstant.GOOD_APP_CACHE_KEY;
 
 /**
  * 应用 控制层。
@@ -254,6 +253,11 @@ public class AppController {
      * @return 精选应用列表
      */
     @PostMapping("/good/list/page/vo")
+    @Cacheable(
+            value = GOOD_APP_CACHE_KEY,
+            key = "T(com.qiujie.aizerocode.utils.CacheKeyUtil).getCacheKey(#appQueryRequest)",
+            condition = "#appQueryRequest.pageNum<=10"
+    )
     public BaseResponse<Page<AppVO>> listGoodAppVOByPage(@RequestBody AppQueryRequest appQueryRequest) {
         ThrowUtils.throwIf(appQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 限制每页最多 20 个
