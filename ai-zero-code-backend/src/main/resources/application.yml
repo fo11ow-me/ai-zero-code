@@ -80,6 +80,7 @@ langchain4j:
       model-name: deepseek-v4-flash
       log-requests: true
       log-responses: true
+      max-tokens: 50
       reasoning-effort: "low"
       temperature: 0
 
