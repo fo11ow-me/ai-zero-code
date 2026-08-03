@@ -3,6 +3,8 @@ package com.qiujie.aizerocode.ai;
 
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
+import com.qiujie.aizerocode.ai.guardrail.PromptSafetyInputGuardrail;
+import com.qiujie.aizerocode.ai.guardrail.RetryOutputGuardrail;
 import com.qiujie.aizerocode.ai.tools.*;
 import com.qiujie.aizerocode.exception.BusinessException;
 import com.qiujie.aizerocode.exception.ErrorCode;
@@ -87,6 +89,8 @@ public class AiCodegenServiceFactory {
                         .hallucinatedToolNameStrategy( // 处理工具调用幻觉问题
                                 toolExecutionRequest -> ToolExecutionResultMessage.from(toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name())
                         )
+                        .inputGuardrails(new PromptSafetyInputGuardrail())
+//                        .outputGuardrails(new RetryOutputGuardrail())  // 可能会导致流式输出异常
                         .build();
             }
             case HTML, MULTI_FILE -> {
@@ -95,6 +99,8 @@ public class AiCodegenServiceFactory {
                         .chatModel(chatModel)
                         .streamingChatModel(streamingChatModelPrototype)
                         .chatMemory(chatMemory)
+                        .inputGuardrails(new PromptSafetyInputGuardrail())
+//                        .outputGuardrails(new RetryOutputGuardrail())
                         .build();
             }
             default ->
