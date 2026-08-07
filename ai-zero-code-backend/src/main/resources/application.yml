@@ -98,3 +98,13 @@ pexels:
 dashscope:
   api-key: ${DASH_SCOPE_API_KEY}
   img-model: wanx-v1
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus
+  endpoint:
+    health:
+      show-details: always
+

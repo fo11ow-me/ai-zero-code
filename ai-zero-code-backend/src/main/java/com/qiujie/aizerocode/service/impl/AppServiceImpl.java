@@ -26,6 +26,8 @@ import com.qiujie.aizerocode.model.enums.ChatHistoryMessageTypeEnum;
 import com.qiujie.aizerocode.model.enums.CodeGenTypeEnum;
 import com.qiujie.aizerocode.model.vo.AppVO;
 import com.qiujie.aizerocode.model.vo.UserVO;
+import com.qiujie.aizerocode.monitor.MonitorContext;
+import com.qiujie.aizerocode.monitor.MonitorContextHolder;
 import com.qiujie.aizerocode.service.AppService;
 import com.qiujie.aizerocode.service.ChatHistoryService;
 import com.qiujie.aizerocode.service.ScreenshotService;
@@ -193,10 +195,19 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App> implements AppSe
         ThrowUtils.throwIf(codeGenTypeEnum == null, ErrorCode.PARAMS_ERROR, "代码生成模式错误");
         // 5. 将用户消息保存到数据库中
         chatHistoryService.addChatMessage(appId, lginUser.getId(), userMessage, ChatHistoryMessageTypeEnum.USER.getValue());
-        // 6. 调用ai生成代码流
+        // 6. 创建监控上下文
+        MonitorContext monitorContext = MonitorContext.builder()
+                .appId(String.valueOf(appId))
+                .userId(String.valueOf(lginUser.getId()))
+                .build();
+        MonitorContextHolder.setContext(monitorContext);
+        // 7. 调用ai生成代码流
         Flux<String> flux = aiCodegenFacade.generateAndSaveCodeStream(userMessage, codeGenTypeEnum, appId);
-        // 7. 返回流，并将ai消息存放到数据库
-        return streamHandlerExecutor.execute(appId, codeGenTypeEnum, lginUser, flux);
+        // 8. 返回流，并将ai消息存放到数据库
+        return streamHandlerExecutor.execute(appId, codeGenTypeEnum, lginUser, flux)
+                .doFinally(signalType -> {
+                    MonitorContextHolder.clearContext();
+                });
     }
 
 
