@@ -39,6 +39,7 @@ build/
 tmp/
 docker-compose.yml
 deploy/
+**/Dockerfile
 .claude/
 .env
 test/
