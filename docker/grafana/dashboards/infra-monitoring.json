@@ -1,0 +1,83 @@
+{
+  "dashboard": {
+    "title": "基础设施监控",
+    "uid": "infra-monitoring",
+    "timezone": "browser",
+    "schemaVersion": 39,
+    "panels": [
+      {
+        "title": "MySQL 连接数",
+        "type": "timeseries",
+        "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "expr": "mysql_global_status_threads_connected", "refId": "A", "legendFormat": "连接数" }
+        ],
+        "fieldConfig": { "defaults": { "unit": "short" } }
+      },
+      {
+        "title": "MySQL QPS",
+        "type": "timeseries",
+        "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "expr": "rate(mysql_global_status_questions[1m])", "refId": "A", "legendFormat": "QPS" }
+        ],
+        "fieldConfig": { "defaults": { "unit": "short" } }
+      },
+      {
+        "title": "MySQL 慢查询",
+        "type": "timeseries",
+        "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "expr": "rate(mysql_global_status_slow_queries[1m])", "refId": "A", "legendFormat": "慢查询/s" }
+        ],
+        "fieldConfig": { "defaults": { "unit": "short" } }
+      },
+      {
+        "title": "Redis 连接客户端数",
+        "type": "timeseries",
+        "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "expr": "redis_connected_clients", "refId": "A", "legendFormat": "客户端数" }
+        ],
+        "fieldConfig": { "defaults": { "unit": "short" } }
+      },
+      {
+        "title": "Redis 内存使用",
+        "type": "timeseries",
+        "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "expr": "redis_memory_used_bytes", "refId": "A", "legendFormat": "内存使用" }
+        ],
+        "fieldConfig": { "defaults": { "unit": "bytes" } }
+      },
+      {
+        "title": "Redis 命令速率",
+        "type": "timeseries",
+        "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "expr": "rate(redis_commands_processed_total[1m])", "refId": "A", "legendFormat": "命令/s" }
+        ],
+        "fieldConfig": { "defaults": { "unit": "short" } }
+      },
+      {
+        "title": "Nginx 活跃连接",
+        "type": "timeseries",
+        "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "expr": "nginx_connections_active", "refId": "A", "legendFormat": "活跃连接" }
+        ],
+        "fieldConfig": { "defaults": { "unit": "short" } }
+      },
+      {
+        "title": "Nginx 请求速率",
+        "type": "timeseries",
+        "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
+        "targets": [
+          { "datasource": { "type": "prometheus", "uid": "PBFA97CFB590B2093" }, "expr": "rate(nginx_http_requests_total[1m])", "refId": "A", "legendFormat": "请求/s" }
+        ],
+        "fieldConfig": { "defaults": { "unit": "short" } }
+      }
+    ]
+  },
+  "overwrite": true
+}
